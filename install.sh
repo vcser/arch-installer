@@ -5,6 +5,7 @@ KEYMAP="la-latin1"
 XKEYMAP="latam"
 USER=
 HOSTNAME=
+SWAPSIZE=8192
 DISK=
 
 # instalacion
@@ -55,7 +56,7 @@ mkfs.ext4 $ROOT &>/dev/null
 mount $ROOT /mnt
 mount $ESP /mnt/boot/
 
-pacstrap /mnt base linux-zen linux-firmware amd-ucode neovim man-db man-pages texinfo
+pacstrap /mnt base linux-zen linux-firmware amd-ucode neovim man-db man-pages texinfo efibootmgr
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # Configuring /etc/mkinitcpio.conf
@@ -87,7 +88,7 @@ EOF
 
 # swapfile
 echo "configuring swap file"
-dd if=/dev/zero of=/swapfile bs=1M count=8192 status=progress
+dd if=/dev/zero of=/swapfile bs=1M count="$SWAPSIZE" status=progress
 chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
