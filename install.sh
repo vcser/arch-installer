@@ -11,11 +11,11 @@ DISK=
 loadkeys $KEYMAP
 # conectar a internet
 # pendiente revisar iwctl
-nmtui
+#nmtui
 timedatectl set-ntp true
 if [[ -z "$DISK" ]]
 then
-    PS3="Select the disk where Arch Linux is going to be installed: "
+    PS3="Selecciona el disco en donde se instalara Arch Linux: "
     select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
     do
         DISK=$ENTRY
@@ -23,6 +23,8 @@ then
         break
     done
 fi
+
+[[ -z "$HOSTNAME" ]] && read -p "hostname: " HOSTNAME
 
 # EFI system partition
 parted -s "$DISK" \
@@ -48,7 +50,7 @@ cryptsetup open $Cryptroot cryptroot
 ROOT="/dev/mapper/cryptroot"
 
 # Formatting the LUKS Container as EXT4.
-echo "Formatting the LUKS container as BTRFS."
+echo "Formatting the LUKS container as EXT4."
 mkfs.ext4 $ROOT &>/dev/null
 mount $ROOT /mnt
 mount $ESP /mnt/boot/
@@ -69,8 +71,8 @@ hwclock --systohc
 # locale
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "es_CL.UTF-8 UTF-8" >> /etc/locale.gen
-echo 'LANG=es_CL.UTF-8' >> /etc/locale.conf
 locale-gen
+echo 'LANG=es_CL.UTF-8' >> /etc/locale.conf
 
 # keymap
 echo "KEYMAP=$KEYMAP" >> /etc/vconsole.conf
@@ -89,29 +91,49 @@ dd if=/dev/zero of=/swapfile bs=1M count=8192 status=progress
 chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
-printf "\n/swapfile none swap defaults 0 0" >> /etc/fstab
+printf "/swapfile none swap defaults 0 0" >> /etc/fstab
 
-# EFISTUB o systemd-boot
+# EFISTUB
 UUID=$(blkid $Cryptroot | cut -f2 -d'"')
 SWAP_DEVICE=$(findmnt -no UUID -T /swapfile)
 OFFSET=$(filefrag -v /swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')
-efibootmgr --disk "$DISK" --part 1 --create --label "Arch Linux" --loader /vmlinuz-linux-zen \
-'--unicode "root=$ROOT rw" \
+efibootmgr --disk "$DISK" --part 1 --create \
+--label "Arch Linux" \
+--loader /vmlinuz-linux-zen \
+--unicode "root=PARTUUID=$UUID rw" \
 "resume=$SWAP_DEVICE resume_offset=$OFFSET" \
 'initrd=\amd-ucode.img initrd=\initramfs-linux-zen.img' \
-'quiet splash apparmor=1 --verbose'
+'quiet apparmor=1' --verbose
+
+# comando de un loco
+# sudo efibootmgr --disk /dev/nvme0n1 --part 1 --create \
+# 	--label "Arch Linux" \
+# 	--loader /vmlinuz-linux \
+# 	--unicode 'initrd=\intel-ucode.img initrd=\initramfs-linux.img \
+# 	rd.luks.name={luks-volume-UUID}=luks rd.luks.options=allow-discards \
+# 	root=UUID={BTRFS-partition-UUID} rootflags=rw,subvol=@ \
+# 	quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log-priority=3 vga=current i915.fastboot=1 \
+#   elevator=bfq apparmor=1 security=apparmor' --verbose
+
+# comando de otro loco
+# efibootmgr --disk /dev/nvme0n1 --part 1 --create 
+# --label "Arch Linux AMD Zen NVMe" 
+# --loader /vmlinuz-linux-zen 
+# --unicode 'root=PARTUUID=<output of lsblk -o NAME,PARTUUID> rw 
+# initrd=\amd-ucode.img initrd=\initramfs-linux-zen.img 
+# quiet libahci.ignore_sss=1 apparmor=1 lsm=capability,lockdown,yama,apparmor' --verbose
 
 # initramfs
 mkinitcpio -P
 
 # usuarios
-if [ -n "$username" ]; then
-    echo "Adding $username with root privilege."
-    useradd -m -G wheel,audio,video,network,power,games,adm,rfkill "$username"
+if [ -n "$USER" ]; then
+    echo "Adding $USER with root privilege."
+    useradd -m -G wheel,audio,video,network,power,games,adm,rfkill "$USER"
 fi
 echo "Setting root password."
 passwd
-[ -n "$username" ] && echo "Setting user password for ${username}." && passwd "$username"
+[ -n "$USER" ] && echo "Setting user password for ${USER}." && passwd "$USER"
 
 #install packages
 local packages
