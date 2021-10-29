@@ -62,6 +62,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 # Configuring /etc/mkinitcpio.conf
 echo "Configuring /etc/mkinitcpio.conf for LUKS hook."
 sed -i -e 's,modconf block filesystems keyboard,keyboard keymap modconf block encrypt filesystems,g' /mnt/etc/mkinitcpio.conf
+UUID=$(blkid "$Cryptroot" | cut -f2 -d'"')
 
 # Configuring the system.    
 arch-chroot /mnt /bin/bash -e <<EOFILE
@@ -95,13 +96,12 @@ swapon /swapfile
 printf "/swapfile none swap defaults 0 0" >> /etc/fstab
 
 # EFISTUB
-UUID=$(blkid $Cryptroot | cut -f2 -d'"')
 SWAP_DEVICE=$(findmnt -no UUID -T /swapfile)
 OFFSET=$(filefrag -v /swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')
 efibootmgr --disk "$DISK" --part 1 --create \
 --label "Arch Linux" \
 --loader /vmlinuz-linux-zen \
---unicode "root=PARTUUID=$UUID rw" \
+--unicode "root=UUID=$UUID rw" \
 "resume=$SWAP_DEVICE resume_offset=$OFFSET" \
 'initrd=\amd-ucode.img initrd=\initramfs-linux-zen.img' \
 'quiet apparmor=1' --verbose
