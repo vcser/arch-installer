@@ -26,6 +26,7 @@ then
 fi
 
 [[ -z "$HOSTNAME" ]] && read -p "hostname: " HOSTNAME
+[[ -z "$USER" ]] && read -p "user: " USER
 
 # EFI system partition
 parted -s "$DISK" \
@@ -54,9 +55,10 @@ ROOT="/dev/mapper/cryptroot"
 echo "Formatting the LUKS container as EXT4."
 mkfs.ext4 $ROOT &>/dev/null
 mount $ROOT /mnt
+mkdir /mnt/boot
 mount $ESP /mnt/boot/
 
-pacstrap /mnt base linux-zen linux-firmware amd-ucode neovim man-db man-pages texinfo efibootmgr
+pacstrap /mnt base linux-zen linux-firmware amd-ucode neovim man-db man-pages texinfo efibootmgr opendoas
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # Configuring /etc/mkinitcpio.conf
@@ -64,7 +66,8 @@ echo "Configuring /etc/mkinitcpio.conf for LUKS hook."
 sed -i -e 's,modconf block filesystems keyboard,keyboard keymap modconf block encrypt filesystems,g' /mnt/etc/mkinitcpio.conf
 UUID=$(blkid "$Cryptroot" | cut -f2 -d'"')
 
-# Configuring the system.    
+# Configuring the system.
+echo "entrando a chroot"
 arch-chroot /mnt /bin/bash -e <<EOFILE
 # time zone
 ln -sf /usr/share/zoneinfo/America/Santiago /etc/localtime
@@ -128,24 +131,27 @@ efibootmgr --disk "$DISK" --part 1 --create \
 mkinitcpio -P
 
 #install packages
-local packages
-packages += "firefox mlocate openssh opendoas unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs"
+packages=
+packages += "firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs"
 packages += " rofi ranger dunst"
 packages += " git base-devel"
-packages += " xorg-sever xorg-xinit libxinerama libx11 libxft"
+packages += " xorg-sever xorg-xinit libxinerama libx11 libxft xclip"
 packages += " mesa"
 pacman -S --ignore sudo "$packages"
 
+echo "configurando xkeymap"
 localectl --no-convert set-x11-keymap "$XKEYMAP"
 xdg-user-dirs-update
 
 #configure sudo
+echo "configurando sudo"
 echo "permit persist :wheel" >> /etc/doas.conf
 chown -c root:root /etc/doas.conf
 chmod -c 0400 /etc/doas.conf
 ln -s $(which doas) /usr/bin/sudo
 
 # swappiness
+echo "configurando swappiness"
 mkdir -p /etc/sysctl.d
 echo 'vm.swappiness=10' >> /etc/sysctl.d/99-swappiness.conf 
 
@@ -155,6 +161,7 @@ if [ -n "$USER" ]; then
     useradd -m -G wheel,audio,video,network,power,games,adm,rfkill "$USER"
 fi
 EOFILE
+echo "saliendo de chroot"
 
 echo "Setting root password."
 arch-chroot /mnt /bin/passwd
