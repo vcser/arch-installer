@@ -127,15 +127,6 @@ efibootmgr --disk "$DISK" --part 1 --create \
 # initramfs
 mkinitcpio -P
 
-# usuarios
-if [ -n "$USER" ]; then
-    echo "Adding $USER with root privilege."
-    useradd -m -G wheel,audio,video,network,power,games,adm,rfkill "$USER"
-fi
-echo "Setting root password."
-passwd
-[ -n "$USER" ] && echo "Setting user password for ${USER}." && passwd "$USER"
-
 #install packages
 local packages
 packages += "firefox mlocate openssh opendoas unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs"
@@ -158,7 +149,13 @@ ln -s $(which doas) /usr/bin/sudo
 mkdir -p /etc/sysctl.d
 echo 'vm.swappiness=10' >> /etc/sysctl.d/99-swappiness.conf 
 
-# hibernation
+# usuarios
+if [ -n "$USER" ]; then
+    echo "Adding $USER with root privilege."
+    useradd -m -G wheel,audio,video,network,power,games,adm,rfkill "$USER"
+fi
 EOFILE
 
-
+echo "Setting root password."
+arch-chroot /mnt /bin/passwd
+[ -n "$USER" ] && echo "Setting user password for ${USER}." && arch-chroot /mnt /bin/passwd "$USER"
