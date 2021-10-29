@@ -131,12 +131,12 @@ efibootmgr --disk "$DISK" --part 1 --create \
 mkinitcpio -P
 
 #install packages
-packages=
-packages += "firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs"
-packages += " rofi ranger dunst"
-packages += " git base-devel"
-packages += " xorg-sever xorg-xinit libxinerama libx11 libxft xclip"
-packages += " mesa"
+packages=""
+packages+="firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs"
+packages+=" rofi ranger dunst"
+packages+=" git base-devel"
+packages+=" xorg-sever xorg-xinit libxinerama libx11 libxft xclip"
+packages+=" mesa"
 pacman -S --ignore sudo "$packages"
 
 echo "configurando xkeymap"
