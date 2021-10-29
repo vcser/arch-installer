@@ -128,16 +128,8 @@ efibootmgr --disk "$DISK" --part 1 --create \
 # quiet libahci.ignore_sss=1 apparmor=1 lsm=capability,lockdown,yama,apparmor' --verbose
 
 # initramfs
+echo "generando initramfs"
 mkinitcpio -P
-
-#install packages
-packages=""
-packages+="firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs"
-packages+=" rofi ranger dunst"
-packages+=" git base-devel"
-packages+=" xorg-sever xorg-xinit libxinerama libx11 libxft xclip"
-packages+=" mesa"
-pacman -S --ignore sudo "$packages"
 
 echo "configurando xkeymap"
 localectl --no-convert set-x11-keymap "$XKEYMAP"
@@ -160,6 +152,16 @@ if [ -n "$USER" ]; then
     echo "Adding $USER with root privilege."
     useradd -m -G wheel,audio,video,network,power,games,adm,rfkill "$USER"
 fi
+
+#install packages
+echo "instalando paquetes"
+packages=''
+packages+='firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs'
+packages+=' rofi ranger dunst'
+packages+=' git'
+packages+=' xorg-sever xorg-xinit libxinerama libx11 libxft xclip'
+packages+=' mesa'
+pacman -S --needed --noconfirm $packages
 EOFILE
 echo "saliendo de chroot"
 
