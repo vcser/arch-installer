@@ -104,7 +104,7 @@ OFFSET=$(filefrag -v /swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2
 efibootmgr --disk "$DISK" --part 1 --create \
 --label "Arch Linux" \
 --loader /vmlinuz-linux-zen \
---unicode "root=UUID=$UUID rw" \
+--unicode "cryptdevice=UUID=${UUID}:cryptroot root=$ROOT rw" \
 "resume=$SWAP_DEVICE resume_offset=$OFFSET" \
 'initrd=\amd-ucode.img initrd=\initramfs-linux-zen.img' \
 'quiet apparmor=1' --verbose
