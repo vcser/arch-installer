@@ -58,7 +58,7 @@ mount $ROOT /mnt
 mkdir /mnt/boot
 mount $ESP /mnt/boot/
 
-pacstrap /mnt base linux-zen linux-firmware amd-ucode neovim man-db man-pages texinfo efibootmgr opendoas
+pacstrap /mnt base linux-zen linux-firmware amd-ucode neovim man-db man-pages texinfo efibootmgr opendoas which
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # Configuring /etc/mkinitcpio.conf
@@ -109,24 +109,6 @@ efibootmgr --disk "$DISK" --part 1 --create \
 'initrd=\amd-ucode.img initrd=\initramfs-linux-zen.img' \
 'quiet apparmor=1' --verbose
 
-# comando de un loco
-# sudo efibootmgr --disk /dev/nvme0n1 --part 1 --create \
-# 	--label "Arch Linux" \
-# 	--loader /vmlinuz-linux \
-# 	--unicode 'initrd=\intel-ucode.img initrd=\initramfs-linux.img \
-# 	rd.luks.name={luks-volume-UUID}=luks rd.luks.options=allow-discards \
-# 	root=UUID={BTRFS-partition-UUID} rootflags=rw,subvol=@ \
-# 	quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log-priority=3 vga=current i915.fastboot=1 \
-#   elevator=bfq apparmor=1 security=apparmor' --verbose
-
-# comando de otro loco
-# efibootmgr --disk /dev/nvme0n1 --part 1 --create 
-# --label "Arch Linux AMD Zen NVMe" 
-# --loader /vmlinuz-linux-zen 
-# --unicode 'root=PARTUUID=<output of lsblk -o NAME,PARTUUID> rw 
-# initrd=\amd-ucode.img initrd=\initramfs-linux-zen.img 
-# quiet libahci.ignore_sss=1 apparmor=1 lsm=capability,lockdown,yama,apparmor' --verbose
-
 # initramfs
 echo "generando initramfs"
 mkinitcpio -P
@@ -155,13 +137,9 @@ fi
 
 #install packages
 echo "instalando paquetes"
-packages=''
-packages+='firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs'
-packages+=' rofi ranger dunst'
-packages+=' git'
-packages+=' xorg-sever xorg-xinit libxinerama libx11 libxft xclip'
-packages+=' mesa'
-pacman -S --needed --noconfirm $packages
+pacman -S --needed --noconfirm firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs xorg-sever xorg-xinit libxinerama libx11 libxft xclip git binutils file findutils gawk grep make sed gcc rofi ranger dunst mesa
+
+xdg-user-dirs-update
 EOFILE
 echo "saliendo de chroot"
 
