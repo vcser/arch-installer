@@ -137,7 +137,7 @@ fi
 
 #install packages
 echo "instalando paquetes"
-pacman -S --needed --noconfirm firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs xorg-sever xorg-xinit libxinerama libx11 libxft xclip git binutils file findutils gawk grep make sed gcc rofi ranger dunst mesa
+pacman -S --needed --noconfirm firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs xorg-server xorg-xinit libxinerama libx11 libxft xclip git binutils file findutils gawk grep make sed gcc rofi ranger dunst mesa
 
 xdg-user-dirs-update
 EOFILE
