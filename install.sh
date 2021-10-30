@@ -131,9 +131,9 @@ efibootmgr --disk "$DISK" --part 1 --create \
 echo "generando initramfs"
 mkinitcpio -P
 
-echo "configurando xkeymap"
-localectl --no-convert set-x11-keymap "$XKEYMAP"
-xdg-user-dirs-update
+# echo "configurando xkeymap"
+# localectl --no-convert set-x11-keymap "$XKEYMAP"
+# xdg-user-dirs-update
 
 #configure sudo
 echo "configurando sudo"
