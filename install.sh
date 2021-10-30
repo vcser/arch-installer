@@ -122,7 +122,7 @@ echo "configurando sudo"
 echo "permit persist :wheel" >> /etc/doas.conf
 chown -c root:root /etc/doas.conf
 chmod -c 0400 /etc/doas.conf
-ln -s $(which doas) /usr/bin/sudo
+ln -s /usr/bin/doas /usr/bin/sudo
 
 # swappiness
 echo "configurando swappiness"
