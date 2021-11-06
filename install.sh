@@ -101,6 +101,8 @@ printf "/swapfile none swap defaults 0 0" >> /etc/fstab
 # EFISTUB
 SWAP_DEVICE=$(findmnt -no UUID -T /swapfile)
 OFFSET=$(filefrag -v /swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')
+echo "device = $SWAP_DEVICE"
+echo "offset = $OFFSET"
 efibootmgr --disk "$DISK" --part 1 --create \
 --label "Arch Linux" \
 --loader /vmlinuz-linux-zen \
@@ -137,7 +139,7 @@ fi
 
 #install packages
 echo "instalando paquetes"
-pacman -S --needed --noconfirm firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs xorg-server xorg-xinit libxinerama libx11 libxft xclip git binutils file findutils gawk grep make sed gcc rofi ranger dunst mesa
+pacman -S --needed --noconfirm firefox mlocate openssh unrar unzip zip wget htop alsa-utils networkmanager xdg-user-dirs xorg-server xorg-xinit xorg-xinput libxinerama libx11 libxft xclip git binutils file findutils gawk grep make sed gcc gdb rofi ranger dunst feh mesa
 
 xdg-user-dirs-update
 EOFILE
@@ -146,3 +148,14 @@ echo "saliendo de chroot"
 echo "Setting root password."
 arch-chroot /mnt /bin/passwd
 [ -n "$USER" ] && echo "Setting user password for ${USER}." && arch-chroot /mnt /bin/passwd "$USER"
+
+arch-chroot /mnt /bin/bash -e <<EOF
+cd /home/$USER
+mkdir -p .config
+cd .config
+git clone https://github.com/vcser/dotfiles.git
+git clone https://github.com/vcser/dwm.git
+git clone https://github.com/vcser/st.git
+cd dotfiles
+./install
+EOF
