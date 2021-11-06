@@ -97,10 +97,13 @@ chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
 printf "/swapfile none swap defaults 0 0" >> /etc/fstab
+EOFILE
 
+SWAP_DEVICE=$(findmnt -no UUID -T /mnt/swapfile)
+OFFSET=$(filefrag -v /mnt/swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')
+
+arch-chroot /mnt /bin/bash -e <<EOFILE
 # EFISTUB
-SWAP_DEVICE=$(findmnt -no UUID -T /swapfile)
-OFFSET=$(filefrag -v /swapfile | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')
 echo "device = $SWAP_DEVICE"
 echo "offset = $OFFSET"
 efibootmgr --disk "$DISK" --part 1 --create \
@@ -153,9 +156,9 @@ arch-chroot /mnt /bin/bash -e <<EOF
 cd /home/$USER
 mkdir -p .config
 cd .config
-git clone https://github.com/vcser/dotfiles.git
 git clone https://github.com/vcser/dwm.git
 git clone https://github.com/vcser/st.git
-cd dotfiles
-./install
+# git clone https://github.com/vcser/dotfiles.git
+# cd dotfiles
+# ./install
 EOF
