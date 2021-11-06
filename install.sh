@@ -63,7 +63,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 # Configuring /etc/mkinitcpio.conf
 echo "Configuring /etc/mkinitcpio.conf for LUKS hook."
-sed -i -e 's,modconf block filesystems keyboard,keyboard keymap modconf block encrypt filesystems,g' /mnt/etc/mkinitcpio.conf
+sed -i -e 's,modconf block filesystems keyboard,keyboard keymap modconf block encrypt filesystems fsck,g' /mnt/etc/mkinitcpio.conf
 UUID=$(blkid "$Cryptroot" | cut -f2 -d'"')
 
 # Configuring the system.
